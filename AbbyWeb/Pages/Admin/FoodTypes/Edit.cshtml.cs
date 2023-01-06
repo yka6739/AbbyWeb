@@ -1,5 +1,6 @@
 
 using Abby.DataAccess.Data;
+using Abby.DataAccess.Repository.IRepository;
 using Abby.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -9,19 +10,20 @@ namespace AbbyWeb.Pages.Admin.FoodTypes;
 
 public class EditModel : PageModel
 {
-    private readonly ApplicationDBContext _db;
+    private readonly IUnitOfWork _unitOfWork;
     [BindProperty]
     public FoodType FoodType { get; set; }
 
-    public EditModel(ApplicationDBContext db)
+    public EditModel(IUnitOfWork unitOfWork)
     {
-        _db = db;
+        _unitOfWork= unitOfWork;
 
     }
 
+
     public void OnGet(int id)
     {
-        FoodType = _db.FoodType.Find(id);
+        FoodType = _unitOfWork.FoodType.GetFirstOrDefault(u => u.Id == id);
         //we can do the same thing with following type
         //Category = _db.Category.FirstOrDefault(u=>u.Id==id);
         //Category = _db.Category.SingleOrDefault(u => u.Id == id);
@@ -35,8 +37,8 @@ public class EditModel : PageModel
             
 
 
-                _db.FoodType.Update(FoodType);
-                await _db.SaveChangesAsync();
+                _unitOfWork.FoodType.Update(FoodType);
+            _unitOfWork.Save();
             TempData["Success"] = "Category Updated Successfully";
 
             return RedirectToPage("Index");
